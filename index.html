@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Configurator</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+        #configurator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div id="configurator"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/controls/OrbitControls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.min.js"></script>
+
+<script>
+// Your JavaScript code starts here
+const scene = new THREE.Scene();
+
+// Create both cameras
+const aspect = window.innerWidth / window.innerHeight;
+const perspectiveCamera = new THREE.PerspectiveCamera(70, aspect, 0.1, 1000);
+const orthographicCamera = new THREE.OrthographicCamera(-aspect, aspect, 1, -1, 0.1, 1000);
+
+// Set the initial camera
+let currentCamera = perspectiveCamera;
+const startPosition = { x: 0, y: 0, z: 2 }; 
+perspectiveCamera.position.set(startPosition.x, startPosition.y, startPosition.z);
+orthographicCamera.position.set(startPosition.x, startPosition.y, startPosition.z);
+scene.add(currentCamera);
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true
+});
+renderer.setClearColor(0x000000, 0);
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+document.body.appendChild(renderer.domElement);
+
+const floorGeometry = new THREE.PlaneGeometry(20, 20);
+const floorMaterial = new THREE.ShadowMaterial({ opacity: 0.1 });
+const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = 0;
+floor.receiveShadow = true;
+scene.add(floor);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+directionalLight.position.set(5, 10, 7.5);
+directionalLight.castShadow = true;
+
+directionalLight.shadow.mapSize.width = 4096;
+directionalLight.shadow.mapSize.height = 4096;
+directionalLight.shadow.camera.near = 0.5;
+directionalLight.shadow.camera.far = 100;
+directionalLight.shadow.camera.left = -15;
+directionalLight.shadow.camera.right = 15;
+directionalLight.shadow.camera.top = 15;
+directionalLight.shadow.camera.bottom = -15;
+directionalLight.shadow.radius = 4;
+directionalLight.shadow.bias = -0.0005;
+
+scene.add(directionalLight);
+
+// Add your other 3D objects and configurations here
+
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, currentCamera);
+}
+
+animate();
+</script>
+
+</body>
+</html>
