@@ -2,7 +2,6 @@ import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/thr
 import { OrbitControls } from './OrbitControls.js';
 import { GUI } from 'https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.module.js';
 
-const gui = new GUI();
 const scene = new THREE.Scene();
 
 // Create both cameras
