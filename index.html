@@ -29,10 +29,16 @@
 <div id="configurator"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.min.js"></script>
-<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.127.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.min.js"></script>
 
 <script>
+import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.module.js';
+import {
+  OrbitControls
+} from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js';
+import * as dat from 'https://cdn.skypack.dev/dat.gui';
+
 const scene = new THREE.Scene();
 
 // Create both cameras
@@ -571,6 +577,8 @@ function animate() {
 
 animate();
 updateCubeGeometry();
+
+
 </script>
 
 </body>
