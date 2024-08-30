@@ -11,14 +11,27 @@ import {
     EventDispatcher // <- Add this to handle events
 } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js';
 
+// Event constants used in OrbitControls
+const _changeEvent = { type: 'change' };
+const _startEvent = { type: 'start' };
+const _endEvent = { type: 'end' };
+
 // OrbitControls class definition
 class OrbitControls extends EventDispatcher {
     constructor(object, domElement) {
         super();  // <- Call the parent class (EventDispatcher) constructor
         this.object = object;
         this.domElement = domElement;
-
         // Initialize other properties and methods here...
+
+        // Your existing properties and methods below this point...
+
+        this.state = _STATE.NONE;
+
+        // Rest of your constructor code...
+
+        // Event listener setup and method definitions...
+
     }
 
 // OrbitControls performs orbiting, dollying (zooming), and panning.
