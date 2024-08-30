@@ -546,9 +546,9 @@ if (controls) {
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
-  updateCubeGeometry();
   controls.update();
   renderer.render(scene, currentCamera);
 }
 
 animate();
+updateCubeGeometry();
