@@ -8,210 +8,175 @@ import {
     Plane,
     Ray,
     MathUtils,
-    EventDispatcher // <- Add this to handle events
+    EventDispatcher // Correctly importing EventDispatcher
 } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js';
 
 // Event constants used in OrbitControls
 const _changeEvent = { type: 'change' };
 const _startEvent = { type: 'start' };
 const _endEvent = { type: 'end' };
-
-// OrbitControls class definition
-class OrbitControls extends EventDispatcher {
-    constructor(object, domElement) {
-        super();  // <- Call the parent class (EventDispatcher) constructor
-        this.object = object;
-        this.domElement = domElement;
-        // Initialize other properties and methods here...
-
-        // Your existing properties and methods below this point...
-
-        this.state = _STATE.NONE;
-
-        // Rest of your constructor code...
-
-        // Event listener setup and method definitions...
-
-    }
-
-// OrbitControls performs orbiting, dollying (zooming), and panning.
-// Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
-//
-//    Orbit - left mouse / touch: one-finger move
-//    Zoom - middle mouse, or mousewheel / touch: two-finger spread or squish
-//    Pan - right mouse, or left mouse + ctrl/meta/shiftKey, or arrow keys / touch: two-finger move
-
-const _changeEvent = { type: 'change' };
-const _startEvent = { type: 'start' };
-const _endEvent = { type: 'end' };
 const _ray = new Ray();
 const _plane = new Plane();
-const _TILT_LIMIT = Math.cos( 70 * MathUtils.DEG2RAD );
+const _TILT_LIMIT = Math.cos(70 * MathUtils.DEG2RAD);
 
 const _v = new Vector3();
 const _twoPI = 2 * Math.PI;
 
 const _STATE = {
-	NONE: - 1,
-	ROTATE: 0,
-	DOLLY: 1,
-	PAN: 2,
-	TOUCH_ROTATE: 3,
-	TOUCH_PAN: 4,
-	TOUCH_DOLLY_PAN: 5,
-	TOUCH_DOLLY_ROTATE: 6
+    NONE: -1,
+    ROTATE: 0,
+    DOLLY: 1,
+    PAN: 2,
+    TOUCH_ROTATE: 3,
+    TOUCH_PAN: 4,
+    TOUCH_DOLLY_PAN: 5,
+    TOUCH_DOLLY_ROTATE: 6
 };
 const _EPS = 0.000001;
 
-class OrbitControls extends Controls {
+class OrbitControls extends EventDispatcher {
+    constructor(object, domElement = null) {
+        super(); // Call the parent class (EventDispatcher) constructor
+        this.object = object;
+        this.domElement = domElement;
+        this.state = _STATE.NONE;
 
-	constructor( object, domElement = null ) {
+        // Set to false to disable this control
+        this.enabled = true;
 
-		super( object, domElement );
+        // "target" sets the location of focus, where the object orbits around
+        this.target = new Vector3();
 
-		this.state = _STATE.NONE;
+        // Sets the 3D cursor (similar to Blender), from which the maxTargetRadius takes effect
+        this.cursor = new Vector3();
 
-		// Set to false to disable this control
-		this.enabled = true;
+        // How far you can dolly in and out ( PerspectiveCamera only )
+        this.minDistance = 0;
+        this.maxDistance = Infinity;
 
-		// "target" sets the location of focus, where the object orbits around
-		this.target = new Vector3();
+        // How far you can zoom in and out ( OrthographicCamera only )
+        this.minZoom = 0;
+        this.maxZoom = Infinity;
 
-		// Sets the 3D cursor (similar to Blender), from which the maxTargetRadius takes effect
-		this.cursor = new Vector3();
+        // Limit camera target within a spherical area around the cursor
+        this.minTargetRadius = 0;
+        this.maxTargetRadius = Infinity;
 
-		// How far you can dolly in and out ( PerspectiveCamera only )
-		this.minDistance = 0;
-		this.maxDistance = Infinity;
+        // How far you can orbit vertically, upper and lower limits.
+        // Range is 0 to Math.PI radians.
+        this.minPolarAngle = 0; // radians
+        this.maxPolarAngle = Math.PI; // radians
 
-		// How far you can zoom in and out ( OrthographicCamera only )
-		this.minZoom = 0;
-		this.maxZoom = Infinity;
+        // How far you can orbit horizontally, upper and lower limits.
+        // If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
+        this.minAzimuthAngle = -Infinity; // radians
+        this.maxAzimuthAngle = Infinity; // radians
 
-		// Limit camera target within a spherical area around the cursor
-		this.minTargetRadius = 0;
-		this.maxTargetRadius = Infinity;
+        // Set to true to enable damping (inertia)
+        // If damping is enabled, you must call controls.update() in your animation loop
+        this.enableDamping = false;
+        this.dampingFactor = 0.05;
 
-		// How far you can orbit vertically, upper and lower limits.
-		// Range is 0 to Math.PI radians.
-		this.minPolarAngle = 0; // radians
-		this.maxPolarAngle = Math.PI; // radians
+        // This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
+        // Set to false to disable zooming
+        this.enableZoom = true;
+        this.zoomSpeed = 1.0;
 
-		// How far you can orbit horizontally, upper and lower limits.
-		// If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
-		this.minAzimuthAngle = - Infinity; // radians
-		this.maxAzimuthAngle = Infinity; // radians
+        // Set to false to disable rotating
+        this.enableRotate = true;
+        this.rotateSpeed = 1.0;
 
-		// Set to true to enable damping (inertia)
-		// If damping is enabled, you must call controls.update() in your animation loop
-		this.enableDamping = false;
-		this.dampingFactor = 0.05;
+        // Set to false to disable panning
+        this.enablePan = true;
+        this.panSpeed = 1.0;
+        this.screenSpacePanning = true; // if false, pan orthogonal to world-space direction camera.up
+        this.keyPanSpeed = 7.0; // pixels moved per arrow key push
+        this.zoomToCursor = false;
 
-		// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
-		// Set to false to disable zooming
-		this.enableZoom = true;
-		this.zoomSpeed = 1.0;
+        // Set to true to automatically rotate around the target
+        // If auto-rotate is enabled, you must call controls.update() in your animation loop
+        this.autoRotate = false;
+        this.autoRotateSpeed = 2.0; // 30 seconds per orbit when fps is 60
 
-		// Set to false to disable rotating
-		this.enableRotate = true;
-		this.rotateSpeed = 1.0;
+        // The four arrow keys
+        this.keys = { LEFT: 'ArrowLeft', UP: 'ArrowUp', RIGHT: 'ArrowRight', BOTTOM: 'ArrowDown' };
 
-		// Set to false to disable panning
-		this.enablePan = true;
-		this.panSpeed = 1.0;
-		this.screenSpacePanning = true; // if false, pan orthogonal to world-space direction camera.up
-		this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
-		this.zoomToCursor = false;
+        // Mouse buttons
+        this.mouseButtons = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN };
 
-		// Set to true to automatically rotate around the target
-		// If auto-rotate is enabled, you must call controls.update() in your animation loop
-		this.autoRotate = false;
-		this.autoRotateSpeed = 2.0; // 30 seconds per orbit when fps is 60
+        // Touch fingers
+        this.touches = { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN };
 
-		// The four arrow keys
-		this.keys = { LEFT: 'ArrowLeft', UP: 'ArrowUp', RIGHT: 'ArrowRight', BOTTOM: 'ArrowDown' };
+        // for reset
+        this.target0 = this.target.clone();
+        this.position0 = this.object.position.clone();
+        this.zoom0 = this.object.zoom;
 
-		// Mouse buttons
-		this.mouseButtons = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN };
+        // the target DOM element for key events
+        this._domElementKeyEvents = null;
 
-		// Touch fingers
-		this.touches = { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN };
+        // internals
 
-		// for reset
-		this.target0 = this.target.clone();
-		this.position0 = this.object.position.clone();
-		this.zoom0 = this.object.zoom;
+        this._lastPosition = new Vector3();
+        this._lastQuaternion = new Quaternion();
+        this._lastTargetPosition = new Vector3();
 
-		// the target DOM element for key events
-		this._domElementKeyEvents = null;
+        // so camera.up is the orbit axis
+        this._quat = new Quaternion().setFromUnitVectors(object.up, new Vector3(0, 1, 0));
+        this._quatInverse = this._quat.clone().invert();
 
-		// internals
+        // current position in spherical coordinates
+        this._spherical = new Spherical();
+        this._sphericalDelta = new Spherical();
 
-		this._lastPosition = new Vector3();
-		this._lastQuaternion = new Quaternion();
-		this._lastTargetPosition = new Vector3();
+        this._scale = 1;
+        this._panOffset = new Vector3();
 
-		// so camera.up is the orbit axis
-		this._quat = new Quaternion().setFromUnitVectors( object.up, new Vector3( 0, 1, 0 ) );
-		this._quatInverse = this._quat.clone().invert();
+        this._rotateStart = new Vector2();
+        this._rotateEnd = new Vector2();
+        this._rotateDelta = new Vector2();
 
-		// current position in spherical coordinates
-		this._spherical = new Spherical();
-		this._sphericalDelta = new Spherical();
+        this._panStart = new Vector2();
+        this._panEnd = new Vector2();
+        this._panDelta = new Vector2();
 
-		this._scale = 1;
-		this._panOffset = new Vector3();
+        this._dollyStart = new Vector2();
+        this._dollyEnd = new Vector2();
+        this._dollyDelta = new Vector2();
 
-		this._rotateStart = new Vector2();
-		this._rotateEnd = new Vector2();
-		this._rotateDelta = new Vector2();
+        this._dollyDirection = new Vector3();
+        this._mouse = new Vector2();
+        this._performCursorZoom = false;
 
-		this._panStart = new Vector2();
-		this._panEnd = new Vector2();
-		this._panDelta = new Vector2();
+        this._pointers = [];
+        this._pointerPositions = {};
 
-		this._dollyStart = new Vector2();
-		this._dollyEnd = new Vector2();
-		this._dollyDelta = new Vector2();
+        this._controlActive = false;
 
-		this._dollyDirection = new Vector3();
-		this._mouse = new Vector2();
-		this._performCursorZoom = false;
+        // event listeners
 
-		this._pointers = [];
-		this._pointerPositions = {};
+        this._onPointerMove = onPointerMove.bind(this);
+        this._onPointerDown = onPointerDown.bind(this);
+        this._onPointerUp = onPointerUp.bind(this);
+        this._onContextMenu = onContextMenu.bind(this);
+        this._onMouseWheel = onMouseWheel.bind(this);
+        this._onKeyDown = onKeyDown.bind(this);
 
-		this._controlActive = false;
+        this._onTouchStart = onTouchStart.bind(this);
+        this._onTouchMove = onTouchMove.bind(this);
 
-		// event listeners
+        this._onMouseDown = onMouseDown.bind(this);
+        this._onMouseMove = onMouseMove.bind(this);
 
-		this._onPointerMove = onPointerMove.bind( this );
-		this._onPointerDown = onPointerDown.bind( this );
-		this._onPointerUp = onPointerUp.bind( this );
-		this._onContextMenu = onContextMenu.bind( this );
-		this._onMouseWheel = onMouseWheel.bind( this );
-		this._onKeyDown = onKeyDown.bind( this );
+        this._interceptControlDown = interceptControlDown.bind(this);
+        this._interceptControlUp = interceptControlUp.bind(this);
 
-		this._onTouchStart = onTouchStart.bind( this );
-		this._onTouchMove = onTouchMove.bind( this );
+        if (this.domElement !== null) {
+            this.connect();
+        }
 
-		this._onMouseDown = onMouseDown.bind( this );
-		this._onMouseMove = onMouseMove.bind( this );
-
-		this._interceptControlDown = interceptControlDown.bind( this );
-		this._interceptControlUp = interceptControlUp.bind( this );
-
-		//
-
-		if ( this.domElement !== null ) {
-
-			this.connect();
-
-		}
-
-		this.update();
-
-	}
+        this.update();
+    }
 
 	connect() {
 
