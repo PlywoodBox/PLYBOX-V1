@@ -531,7 +531,10 @@ function updateCameraView() {
 }
 
 const controls = new OrbitControls(currentCamera, renderer.domElement);
+// Log the controls object to verify initialization
+console.log(controls);
 
+// Animation loop
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
