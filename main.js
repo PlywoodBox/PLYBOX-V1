@@ -1,5 +1,8 @@
+// Import necessary components from Three.js
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js';
+// Import OrbitControls from your local file
 import { OrbitControls } from './OrbitControls.js';
+// Import dat.GUI (optional, if you are using it)
 import { GUI } from 'https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.module.js';
 
 const scene = new THREE.Scene();
