@@ -1,17 +1,25 @@
 import {
-	Controls,
-	MOUSE,
-	Quaternion,
-	Spherical,
-	TOUCH,
-	Vector2,
-	Vector3,
-	Plane,
-	Ray,
-	MathUtils
+    MOUSE,
+    Quaternion,
+    Spherical,
+    TOUCH,
+    Vector2,
+    Vector3,
+    Plane,
+    Ray,
+    MathUtils,
+    EventDispatcher // <- Add this to handle events
 } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js';
 
+// OrbitControls class definition
+class OrbitControls extends EventDispatcher {
+    constructor(object, domElement) {
+        super();  // <- Call the parent class (EventDispatcher) constructor
+        this.object = object;
+        this.domElement = domElement;
 
+        // Initialize other properties and methods here...
+    }
 // OrbitControls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
 //
