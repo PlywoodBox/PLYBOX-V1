@@ -8,10 +8,10 @@ import {
     Plane,
     Ray,
     MathUtils,
-    EventDispatcher // Correctly importing EventDispatcher
+    EventDispatcher
 } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js';
 
-// Event constants used in OrbitControls
+// Event constants
 const _changeEvent = { type: 'change' };
 const _startEvent = { type: 'start' };
 const _endEvent = { type: 'end' };
