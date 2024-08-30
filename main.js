@@ -551,3 +551,4 @@ function animate() {
 }
 
 animate();
+updateCubeGeometry();
