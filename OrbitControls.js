@@ -17,8 +17,6 @@ class OrbitControls extends EventDispatcher {
         super();  // <- Call the parent class (EventDispatcher) constructor
         this.object = object;
         this.domElement = domElement;
-
-        // Initialize other properties and methods here...
     }
 // OrbitControls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
