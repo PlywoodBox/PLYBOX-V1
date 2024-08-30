@@ -551,4 +551,3 @@ function animate() {
 }
 
 animate();
-updateCubeGeometry();
