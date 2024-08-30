@@ -197,15 +197,15 @@ function updateCubeGeometry() {
 
 const textureLoader = new THREE.TextureLoader();
 
-const greyLaminatedTexture = textureLoader.load('Textures/PlasticGreyDark/Plastic_GreyDark_Color.jpg');
-const whiteLaminatedTexture = textureLoader.load('Textures/PlasticWhite/Plastic_White_Color.jpg');
-const yellowLaminatedTexture = textureLoader.load('Textures/PlasticYellow/Plastic_Yellow_Color.jpg');
-const naturalFinishTexture = textureLoader.load('Textures/Plywood02/Plywood02_Color.jpg');
-const redLaminatedTexture = textureLoader.load('Textures/PlasticRed/Plastic_Red_Color.jpg');
-const blueLaminatedTexture = textureLoader.load('Textures/PlasticBlue/Plastic_Blue_Color.jpg');
+const greyLaminatedTexture = textureLoader.load('https://i.imgur.com/0yEgr94.jpeg');
+const whiteLaminatedTexture = textureLoader.load('https://i.imgur.com/EjW8L4E.jpeg');
+const yellowLaminatedTexture = textureLoader.load('https://i.imgur.com/QrapdXF.jpeg');
+const naturalFinishTexture = textureLoader.load('https://i.imgur.com/P9YMPBs.jpg');
+const redLaminatedTexture = textureLoader.load('https://i.imgur.com/30oAplv.jpeg'); // New Red Texture
+const blueLaminatedTexture = textureLoader.load('https://i.imgur.com/AEN7fTa.jpeg'); // New Blue Texture
 
 const endGrainTexture = textureLoader.load(
-  'Textures/Plywood01/Plywood01_Color.jpg',
+  'https://i.imgur.com/azPNWoQ.jpeg',
   (texture) => {
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
@@ -214,7 +214,7 @@ const endGrainTexture = textureLoader.load(
 );
 
 const rotatedEndGrainTexture = textureLoader.load(
-  'Textures/Plywood01/Plywood01_Color.jpg',
+  'https://i.imgur.com/azPNWoQ.jpeg',
   (texture) => {
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
