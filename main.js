@@ -531,6 +531,11 @@ function updateCameraView() {
 }
 
 const controls = new OrbitControls(currentCamera, renderer.domElement);
+controls.enableDamping = true; // enable damping (inertia) for smoother controls
+controls.dampingFactor = 0.25; // set damping factor (adjust this value to your preference)
+controls.screenSpacePanning = false; // if false, pan orthogonal to world-space direction camera.up
+controls.minDistance = 1; // minimum zoom distance
+controls.maxDistance = 500; // maximum zoom distance
 // Log the controls object to verify initialization
 console.log(controls);
 
