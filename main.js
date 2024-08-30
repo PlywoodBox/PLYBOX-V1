@@ -2,6 +2,7 @@ import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/thr
 import { OrbitControls } from './OrbitControls.js';
 import { GUI } from 'https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.module.js';
 
+const gui = new GUI();
 const scene = new THREE.Scene();
 
 // Create both cameras
@@ -468,7 +469,7 @@ function createSectionMesh(width, height, depth, offsetX, offsetY, offsetZ) {
 
 
 
-const gui = new dat.GUI();
+const gui = new GUI();
 gui.add(cubeProperties, 'opacity', 0, 1).name('Transparency').onChange(updateCubeGeometry);
 gui.add(dimensions, 'width').name('Width (m)').listen();
 gui.add(dimensions, 'height').name('Height (m)').listen();
