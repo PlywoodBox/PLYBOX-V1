@@ -556,7 +556,7 @@ animate();
 updateCubeGeometry();
 
 
-const gui = new dat.GUI();
+const gui = new GUI();
 
 const cameraFolder = gui.addFolder('Camera');
 cameraFolder.add({
