@@ -1,0 +1,344 @@
+body {
+  background-color: rgba(0, 0, 0, 0.1);
+  /* Or any other color */
+  margin: 0;
+  border-top: none !important;
+}
+
+/* Main panel background and text color */
+.dg.main {
+  background-color: transparent !important; /* Remove the background */
+  color: inherit !important; /* Reset the text color to inherit from its parent */
+  border-radius: 8px; /* Keep the border radius if desired */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Optional: Keep or adjust the box shadow */
+  min-width: 280px; /* Ensure a minimum width for the panel */
+}
+
+
+/* Folder headers (subcategory background and text color) */
+.dg.main .title {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(0, 0, 0, 0.3) !important;
+  font-size: 15px;
+  font-family: Arial, sans-serif;
+  border-radius: 4px;
+  margin-bottom: 3px !important;
+  /* Add vertical space between labels */
+  text-align: left;
+  /* Center the text horizontally (optional) */
+  padding: 0px 15px;
+  /* Adjust padding to center text vertically */
+  box-sizing: border-box;
+  /* Ensure padding doesn't affect the size */
+}
+
+/* Labels and text inside controls (e.g., Reset Camera, Perspective View) */
+.dg.main .cr {
+  background-color: rgba(0, 0, 0, 0.01) !important;
+  /* Optional background */
+  border-radius: 10px;
+  margin-bottom: 0px !important;
+  /* Add vertical space between labels */
+  padding: 0px;
+  /* Optional: Add padding inside labels */
+  transition: background-color 0.3s ease, border-radius 0.3s ease;
+  /* Smooth transition */
+  border-left: none !important;
+  /* Remove any left border across all controls */
+  border-bottom: none !important;
+  /* Remove any bottom border */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effect for controls */
+.dg.main .cr:hover {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  /* Hover background */
+  border-radius: 15px !important;
+  /* Slightly increase the border-radius on hover */
+}
+
+/* Control labels (Reset Camera, Perspective View) */
+.dg.main .cr span {
+  color: rgba(0, 0, 0, 0.3) !important;
+  /* Text color */
+  border-radius: 2px;
+  height: 20px;
+  /* Set a fixed height */
+  line-height: 20px;
+  /* Set line-height equal to height to vertically center */
+  text-align: left;
+  /* Center the text horizontally (optional) */
+  font-family: Arial, sans-serif;
+  padding: 5px 10px;
+  /* Adjust padding to center text vertically */
+  box-sizing: border-box;
+  /* Ensure padding doesn't affect the size */
+}
+
+/* Text input fields */
+.dg.main .c input[type="text"],
+.dg.main .c input[type="number"] {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(244, 0, 0, 0.8) !important;
+  /* Text color */
+  font-weight: bold;
+  border-radius: 10px;
+  border: 0px solid rgba(244, 0, 0, 1) !important;
+  /* Red border */
+  height: 20px;
+  /* Set a fixed height */
+  line-height: 20px;
+  /* Set line-height equal to height to vertically center */
+  text-align: left;
+  /* Center the text horizontally (optional) */
+  font-family: Arial, sans-serif;
+  padding: 0px 5px;
+  /* Adjust padding to center text vertically */
+  box-sizing: border-box;
+  /* Ensure padding doesn't affect the size */
+  margin-right: 4px;
+  /* Keep this margin */
+  width: 50px;
+  /* Set a fixed width to limit the space taken by text input */
+}
+
+/* Add hover effect to the slider track */
+.dg.main .slider:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  /* Slight hover effect */
+  transform: scale(1.1);
+  /* Slight scaling effect to highlight on hover */
+}
+
+/* Slider track (background) */
+.dg.main .slider {
+  position: relative;
+  /* Make the slider track the relative parent */
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  /* Background of the slider track */
+  height: 20px !important;
+  /* Adjust the thickness here */
+  border-radius: 4px;
+  /* Rounded corners */
+  padding: 0;
+  /* Ensure no padding affects width */
+  margin: 0;
+  /* Ensure no margin offsets */
+  box-sizing: border-box;
+  /* Ensure borders/paddings are included in width/height calculations */
+  display: inline-block;
+  /* Ensure it stays inline with other elements */
+  width: calc(100% - 65px);
+  /* Dynamically adjust width based on the remaining space */
+}
+
+/* Slider foreground (active track) */
+.dg.main .slider-fg {
+  position: absolute;
+  /* Make the foreground bar absolutely positioned */
+  top: 50%;
+  /* Align to the middle */
+  transform: translateY(-50%);
+  /* Offset the height to center it vertically */
+  left: 2px;
+  /* Left padding/offset */
+  right: 2px;
+  /* Right padding/offset */
+  background-color: rgba(244, 0, 0, 0.8) !important;
+  /* Customize active slider color */
+  height: 16px !important;
+  /* Adjust thickness */
+  border-radius: 3px;
+  box-sizing: border-box;
+  /* Ensure the bar respects the padding/border in width calculation */
+  width: calc(100% - 4px);
+  /* Adjust the width to account for left and right padding */
+}
+
+/* Hide the default checkbox */
+.dg.main .c input[type="checkbox"] {
+  position: relative;
+  width: 20px;
+  /* Set consistent width */
+  height: 20px;
+  /* Set consistent height */
+  appearance: none;
+  /* Remove the default checkbox */
+  background-color: rgba(255, 255, 255, 0.5);
+  /* Checkbox background color */
+  border: 0px solid rgba(244, 0, 0, 0.8);
+  /* Customize the border */
+  border-radius: 4px;
+  /* Optional: round the checkbox */
+  cursor: pointer;
+  margin-right: 10px;
+  /* Spacing between checkbox and label */
+  display: inline-block;
+  /* Ensure it's inline for proper spacing */
+  box-sizing: border-box;
+  /* Ensure borders/paddings are included */
+  vertical-align: middle;
+  /* Align with sliders */
+}
+
+/* Style the checkmark */
+.dg.main .c input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background-color: rgba(244, 0, 0, 0.8);
+  /* Customize checkmark color */
+  transform: translate(-50%, -50%) scale(0);
+  /* Initially hide the checkmark */
+  border-radius: 3px;
+  /* Optional: adjust for a round checkmark */
+  transition: transform 0.2s ease-in-out;
+  /* Smooth transition */
+  box-sizing: border-box;
+}
+
+/* Display the checkmark when checked */
+.dg.main .c input[type="checkbox"]:checked::before {
+  transform: translate(-50%, -50%) scale(1);
+  /* Show the checkmark */
+}
+
+/* Align sliders and checkboxes */
+.dg.main .c input[type="checkbox"],
+.dg.main .slider,
+.dg.main .lamination-checkbox {
+  vertical-align: middle;
+  /* Align vertically */
+  margin-top: 3px;
+  /* Adjust as needed to ensure consistent spacing */
+  margin-bottom: 3px;
+  margin-left: 3px;
+}
+
+/* Optional: hover effect for the checkbox */
+.dg.main .c input[type="checkbox"]:hover {
+  transform: scale(1.1);
+  /* Slight scaling effect to highlight on hover */
+}
+
+
+
+/* Styling for the lamination section */
+.dg.main .lamination-container {
+  display: flex;
+  /* Use flex to align label and checkboxes */
+  align-items: center;
+  /* Center vertically */
+  gap: 1px;
+  /* Space between checkboxes */
+}
+
+.dg.main .lamination-label {
+  color: rgba(0, 0, 0, 0.3);
+  /* Text color similar to other labels */
+  font-size: 12px;
+  /* Match the font size of other controls */
+  font-family: Arial, sans-serif;
+  margin-right: 20px;
+  margin-bottom: 10px;
+  display: inline-block;
+  text-align: left;
+  /* Align text to the left */
+  flex: 1;
+  /* Ensure the label takes up available space */
+}
+
+.dg.main .lamination-checkbox {
+  appearance: none;
+  width: 20px;
+  /* Same size as the visibility checkboxes */
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  /* Background similar to checkboxes */
+  border: 2px solid rgba(255, 255, 255, 1);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-block;
+  margin-left: 2px;
+  /* Add some spacing between checkboxes */
+  margin-bottom: 10px;
+}
+
+.dg.main .lamination-checkbox:hover {
+  transform: scale(1.1);
+  /* Slight scaling effect to highlight on hover */
+}
+
+/* Set maximum height for the control panel */
+.dg.main {
+  max-height: 95vh;
+  /* Max height of the control panel, 90% of the viewport height */
+  overflow-y: auto;
+  /* Enable vertical scrolling when needed */
+  scrollbar-width: thin;
+  /* For Firefox: use a thinner scrollbar */
+  scrollbar-color: rgba(244, 0, 0, 0.8) transparent;
+  /* For Firefox: customize scrollbar color */
+}
+
+/* Customize scrollbar appearance for WebKit browsers (Chrome, Safari) */
+.dg.main::-webkit-scrollbar {
+  width: 10px;
+  /* Width of the scrollbar */
+}
+
+.dg.main::-webkit-scrollbar-thumb {
+  background-color: rgba(244, 0, 0, 0.8);
+  /* Color of the scrollbar thumb */
+  border-radius: 10px;
+  /* Roundness of the scrollbar thumb */
+}
+
+.dg.main::-webkit-scrollbar-track {
+  background-color: transparent;
+  /* Background of the scrollbar track */
+}
+
+/* Optional: Add some padding or margin inside the control panel for better spacing */
+.dg.main .cr {
+  padding-right: 10px;
+  /* Add right padding to prevent controls from hiding under scrollbar */
+}
+
+/* Optional: Reduce the padding for the Close Controls button */
+.dg.main .close-button {
+  padding: 5px 10px;
+  /* Adjust padding to make it smaller */
+  margin-top: 10px;
+  /* Add margin to space it from the content */
+  margin-bottom: 5px;
+  /* Space at the bottom */
+}
+
+/* Ensure the Close Controls button is not too far */
+.dg.main .close-button {
+  background-color: rgba(244, 0, 0, 0.5) !important; /* Background similar to folder header */
+  color: rgba(0, 0, 0, 0.3) !important; /* Text color */
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+  border-radius: 4px;
+  padding: 2px 15px; /* Match the padding of the folder headers for text alignment */
+  text-align: center; /* Center the text */
+  cursor: pointer; /* Change cursor to pointer for interactivity */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Add subtle shadow for button effect */
+  border: none !important; /* Remove any border */
+  box-sizing: border-box; /* Include padding and borders in the width calculation */
+  margin: 10px auto 0px auto; /* Center the button and reduce the bottom margin */
+  display: block; /* Ensure it respects the width and behaves like a block */
+  min-width: 280px; /* Prevent the lamination section from shrinking too much */
+}
+
+/* Hover effect for Close Controls button */
+.dg.main .close-button:hover {
+  transform: scale(1.05); /* Slight scaling effect to highlight on hover */
+}
+
