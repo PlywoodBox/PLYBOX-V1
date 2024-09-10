@@ -542,6 +542,8 @@ function createSectionMesh(width, height, depth, offsetX, offsetY, offsetZ) {
 
 // Orbit Controls and Animation Loop
 const controls = new OrbitControls(currentCamera, renderer.domElement);
+controls.enableDamping = true;  // enables inertial damping
+controls.dampingFactor = 0.05;  // sets the damping factor
 controls.maxPolarAngle = Math.PI / 2; // No downward rotation beyond horizontal view
 controls.minDistance = 1; // Minimum zoom distance
 controls.maxDistance = 6; // Maximum zoom distance
