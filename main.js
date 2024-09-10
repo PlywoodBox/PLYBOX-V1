@@ -1,7 +1,3 @@
-import * as THREE from './three.module.js';  // Ensure './' is used for relative paths
-import { OrbitControls } from './OrbitControls.js';  // Correct path to OrbitControls.js
-import { GUI } from './dat.gui.module.js';  // Correct path to dat.gui.module.js
-
 const scene = new THREE.Scene();
 
 // Create both cameras
