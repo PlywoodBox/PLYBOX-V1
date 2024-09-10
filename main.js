@@ -1,6 +1,6 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.127.0/build/three.module.js';
-import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/controls/OrbitControls.js';
-import {GUI} from 'https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.module.js';
+import * as THREE from './three.module.js';
+import { OrbitControls } from './controls/OrbitControls.js';
+import { GUI } from './dat.gui.module.js';
 
 const scene = new THREE.Scene();
 
