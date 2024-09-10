@@ -9,7 +9,7 @@ import {
     Ray,
     MathUtils,
     EventDispatcher
-} from 'https://cdn.jsdelivr.net/npm/three@0.127.0/build/three.module.js';
+} from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/controls/OrbitControls.js';
 
 // Event constants
 const _changeEvent = { type: 'change' };
