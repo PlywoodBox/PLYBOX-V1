@@ -1,6 +1,10 @@
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js';
-import { OrbitControls } from './OrbitControls.js';
-import { GUI } from 'https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.module.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.127.0/build/three.module.js';
+import {
+  OrbitControls
+} from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/controls/OrbitControls.js';
+import {
+  GUI
+} from 'https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.module.js';
 
 const scene = new THREE.Scene();
 
@@ -9,22 +13,23 @@ const aspect = window.innerWidth / window.innerHeight;
 const perspectiveCamera = new THREE.PerspectiveCamera(70, aspect, 0.1, 1000);
 const orthographicCamera = new THREE.OrthographicCamera(-aspect, aspect, 1, -1, 0.1, 1000);
 
+// Define a common start position for both cameras
+const startPosition = new THREE.Vector3(0, 0, 2); // Start position for both cameras
+const startRotation = new THREE.Euler(0, 0, 0); // Common initial rotation
+
 // Set the initial camera
 let currentCamera = perspectiveCamera;
-const startPosition = {
-  x: 0,
-  y: 0,
-  z: 2
-}; // Right in front of the cubes
 perspectiveCamera.position.set(startPosition.x, startPosition.y, startPosition.z);
 orthographicCamera.position.set(startPosition.x, startPosition.y, startPosition.z);
+
+// Add the current camera to the scene
 scene.add(currentCamera);
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
   alpha: true
 });
-renderer.setClearColor(0x000000, 0);
+renderer.setClearColor(0xffffff, 0.8); // White background with full opacity
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 renderer.shadowMap.enabled = true;
@@ -32,6 +37,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 document.body.appendChild(renderer.domElement);
 
+// Lights and geometry setup
 const floorGeometry = new THREE.PlaneGeometry(20, 20);
 const floorMaterial = new THREE.ShadowMaterial({
   opacity: 0.1
@@ -48,30 +54,24 @@ scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
 directionalLight.position.set(5, 10, 7.5);
 directionalLight.castShadow = true;
-
 directionalLight.shadow.mapSize.width = 4096;
 directionalLight.shadow.mapSize.height = 4096;
-directionalLight.shadow.camera.near = 0.5;
-directionalLight.shadow.camera.far = 100;
-directionalLight.shadow.camera.left = -15;
-directionalLight.shadow.camera.right = 15;
-directionalLight.shadow.camera.top = 15;
-directionalLight.shadow.camera.bottom = -15;
-directionalLight.shadow.radius = 4;
-directionalLight.shadow.bias = -0.0005;
-
 scene.add(directionalLight);
 
-let dimensions = {
-  width: 0.6, // 600mm -> 0.6 meters
-  height: 0.6, // 600mm -> 0.6 meters
-  depth: 0.6 // 600mm -> 0.6 meters
-};
+const allowedThicknesses = [0.012, 0.018, 0.024, 0.03]; // Allowed values in meters
 
+function closestAllowedThickness(value) {
+  return allowedThicknesses.reduce((prev, curr) => Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev);
+}
+
+// Cube properties, dimensions, spacing, etc.
+let viewProperties = {
+  perspectiveView: true
+};
 let cubeProperties = {
   transparency: true,
   opacity: 1,
-  thickness: 0.02,
+  thickness: 0.012,
   cubeWidth: 0.6,
   cubeHeight: 0.4,
   cubeDepth: 0.4,
@@ -81,14 +81,19 @@ let cubeProperties = {
   rightPanelVisible: true,
   topPanelVisible: true,
   bottomPanelVisible: true,
-  showHorizontalPanels: true, // Toggle for horizontal panels
-  selectedTexture: 'Grey Lamination',
+  showHorizontalPanels: true,
+  selectedTexture: 'Red Lamination',
 };
 
+let dimensions = {
+  width: 0.6,
+  height: 0.6,
+  depth: 0.6
+};
 
 let spacing = {
-  cubeSpacing: 0.02, // 20mm -> 0.02 meters for cube spacing
-  frontPanelGap: 0.005 // 5mm -> 0.005 meters for front panel gap
+  cubeSpacing: 0.02,
+  frontPanelGap: 0.005
 };
 
 let numCubes = {
@@ -101,6 +106,75 @@ let panelProperties = {
   showLargePanel: false,
   showFloorPanel: false,
 };
+
+// Function: Smooth reset camera to start position
+function resetCamera() {
+  const duration = 1; // Transition duration in seconds
+  const startPos = currentCamera.position.clone(); // Clone the current position
+  const startRot = currentCamera.rotation.clone(); // Clone the current rotation
+
+  // Calculate bounding box center and distance based on geometry dimensions
+  const center = new THREE.Vector3(0, dimensions.height / 2, 0); // Center of the geometry
+  const maxDimension = Math.max(dimensions.width, dimensions.height, dimensions.depth); // Get the largest dimension
+  // Adjust the distance factor based on the geometry width to avoid going too far
+  const widthFactor = Math.min(1, dimensions.width / dimensions.height); // Limit width contribution
+  const distanceFactor = 1 + widthFactor / 2; // Base distance factor with smaller width contribution
+
+  // Calculate target position based on geometry size and aspect ratio
+  const targetPos = new THREE.Vector3(center.x, center.y, maxDimension * distanceFactor);
+  const targetRot = new THREE.Euler(0, 0, 0); // Keep the rotation looking forward
+  const startTime = performance.now();
+
+  function animateReset(time) {
+    const elapsedTime = (time - startTime) / 1000; // Convert to seconds
+    const t = Math.min(elapsedTime / duration, 1); // Normalize time to [0, 1]
+
+    // Smoothly interpolate the position and rotation
+    currentCamera.position.lerpVectors(startPos, targetPos, t);
+
+    // Interpolate the rotation smoothly using slerp (for Euler angles, manually interpolate each axis)
+    currentCamera.rotation.set(
+      THREE.MathUtils.lerp(startRot.x, targetRot.x, t),
+      THREE.MathUtils.lerp(startRot.y, targetRot.y, t),
+      THREE.MathUtils.lerp(startRot.z, targetRot.z, t)
+    );
+
+    // Update the controls target to the center of the geometry
+    controls.target.lerp(center, t)
+
+    // Update controls for the current frame
+    controls.update();
+
+    // Continue the animation if not done
+    if (t < 1) {
+      requestAnimationFrame(animateReset);
+    }
+  }
+
+  requestAnimationFrame(animateReset);
+}
+
+function updateCameraView() {
+  if (viewProperties.perspectiveView) {
+    currentCamera = perspectiveCamera;
+  } else {
+    // Update orthographic camera parameters
+    const frustumSize = 1;
+    orthographicCamera.left = -frustumSize * aspect;
+    orthographicCamera.right = frustumSize * aspect;
+    orthographicCamera.top = frustumSize;
+    orthographicCamera.bottom = -frustumSize;
+    orthographicCamera.updateProjectionMatrix();
+
+    currentCamera = orthographicCamera;
+  }
+
+  // Sync camera position and rotation
+  currentCamera.position.copy(perspectiveCamera.position);
+  currentCamera.rotation.copy(perspectiveCamera.rotation);
+  controls.object = currentCamera;
+  controls.update();
+}
 
 function updateDimensions() {
   const cubeWidth = cubeProperties.cubeWidth;
@@ -122,6 +196,7 @@ function updateCubeGeometry() {
   endGrainMaterial.opacity = cubeProperties.opacity;
   rotatedEndGrainMaterial.opacity = cubeProperties.opacity;
   laminatedMaterial.opacity = cubeProperties.opacity;
+  cylinderMaterial.opacity = cubeProperties.opacity;
 
   const cubeWidth = cubeProperties.cubeWidth;
   const cubeHeight = cubeProperties.cubeHeight;
@@ -139,7 +214,7 @@ function updateCubeGeometry() {
   for (let x = 0; x < numSectionsX; x++) {
     for (let z = 0; z < numSectionsZ; z++) {
       for (let y = 0; y < numSectionsY; y++) {
-        const offsetX = x * sectionSizeX;
+        const offsetX = (x * sectionSizeX) - (dimensions.width / 2);
         const offsetY = y * sectionSizeY;
         const offsetZ = z * sectionSizeZ;
         const mesh = createSectionMesh(cubeProperties.cubeWidth, cubeProperties.cubeHeight, cubeProperties.cubeDepth, offsetX, offsetY, offsetZ);
@@ -189,8 +264,6 @@ function updateCubeGeometry() {
     floorPanel.userData.isCube = true;
     scene.add(floorPanel);
   }
-
-  gui.__controllers.forEach(controller => controller.updateDisplay());
 }
 
 const textureLoader = new THREE.TextureLoader();
@@ -223,7 +296,7 @@ const rotatedEndGrainTexture = textureLoader.load(
 );
 
 let laminatedMaterial = new THREE.MeshStandardMaterial({
-  map: greyLaminatedTexture,
+  map: redLaminatedTexture,
   transparent: cubeProperties.transparency,
   opacity: cubeProperties.opacity,
   roughness: 0.5,
@@ -258,27 +331,21 @@ function updateLaminatedMaterial() {
   switch (cubeProperties.selectedTexture) {
     case 'Grey Lamination':
       laminatedMaterial.map = greyLaminatedTexture;
-      cylinderMaterial.map = greyLaminatedTexture; // Update cylinder material
       break;
     case 'White Lamination':
       laminatedMaterial.map = whiteLaminatedTexture;
-      cylinderMaterial.map = whiteLaminatedTexture; // Update cylinder material
       break;
     case 'Yellow Lamination':
       laminatedMaterial.map = yellowLaminatedTexture;
-      cylinderMaterial.map = yellowLaminatedTexture; // Update cylinder material
       break;
     case 'Natural Finish':
       laminatedMaterial.map = naturalFinishTexture;
-      cylinderMaterial.map = naturalFinishTexture; // Update cylinder material
       break;
     case 'Red Lamination':
       laminatedMaterial.map = redLaminatedTexture;
-      cylinderMaterial.map = redLaminatedTexture; // Update cylinder material
       break;
     case 'Blue Lamination':
       laminatedMaterial.map = blueLaminatedTexture;
-      cylinderMaterial.map = blueLaminatedTexture; // Update cylinder material
       break;
   }
   laminatedMaterial.needsUpdate = true;
@@ -348,10 +415,11 @@ function createSectionMesh(width, height, depth, offsetX, offsetY, offsetZ) {
   // Calculate the number of middle panels along the width
   const availableWidth = width - 2 * thickness; // Available width after edge offsets
   const numMiddlePanelX = Math.floor(availableWidth / 0.5) + 2; // At least 1 middle panel, add more if needed
-
+  const numMiddlePanelZ = Math.floor(depth / 0.5) + 2; // At least 1 middle panel, add more if needed
   // Middle Panels
   const middlePanelDepth = depth - cubeProperties.thickness;
   const middlePanelWidth = availableWidth / (numMiddlePanelX - 1);
+  const middlePanelZ = depth / (numMiddlePanelZ - 1);
 
   for (let i = 1; i < numMiddlePanelX - 1; i++) {
     const middlePanelGeometry = new THREE.BoxGeometry(thickness, sidePanelHeight, middlePanelDepth);
@@ -364,7 +432,7 @@ function createSectionMesh(width, height, depth, offsetX, offsetY, offsetZ) {
     group.add(middlePanel);
   }
 
-// Create arrays of horizontal panels along the X-axis if toggle is enabled
+  // Create arrays of horizontal panels along the X-axis if toggle is enabled
   if (cubeProperties.showHorizontalPanels) {
     for (let i = 0; i < numMiddlePanelX - 1; i++) {
       const startX = -availableWidth / 2 + i * middlePanelWidth;
@@ -434,19 +502,30 @@ function createSectionMesh(width, height, depth, offsetX, offsetY, offsetZ) {
   // Add Cylinders with updated material based on selected lamination
   const cylinderRadius = 0.015; // 15mm radius
   const cylinderHeight = spacing.cubeSpacing; // Already in meters
+  const edgeOffsetX = 0.04; // 40mm offset in meters
+  const edgeOffsetZ = 0.04; // 40mm offset converted to meters
   const numCylindersX = Math.floor(availableWidth / 0.5) + 2;
+  const numCylindersZ = Math.floor(depth / 0.5) + 2;
 
   const cylinderGeometry = new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, cylinderHeight, 32);
-
-  const numCylindersZ = 2; // Place two cylinders along the depth
-  const edgeOffset = 0.04; // 40mm offset converted to meters
 
   for (let i = 0; i < numCylindersX; i++) {
     for (let j = 0; j < numCylindersZ; j++) {
       const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
 
-      const posX = -availableWidth / 2 + i * middlePanelWidth;
-      const posZ = -depth / 2 + edgeOffset + j * (depth - 2 * edgeOffset);
+      let posX = -availableWidth / 2 + i * middlePanelWidth;
+      if (i === 0) {
+        posX += edgeOffsetX; // Apply offset only to the first cylinder
+      } else if (i === numCylindersX - 1) {
+        posX -= edgeOffsetX; // Apply offset only to the last cylinder
+      }
+      let posZ = -depth / 2 + j * middlePanelZ;
+      if (j === 0) {
+        posZ += edgeOffsetZ; // Apply offset to the first cylinder
+      } else if (j === numCylindersZ - 1) {
+        posZ -= edgeOffsetZ; // Apply offset to the last cylinder
+      }
+
       const posY = -height / 2 - cylinderHeight / 2;
 
       cylinder.position.set(posX, posY, posZ);
@@ -465,85 +544,12 @@ function createSectionMesh(width, height, depth, offsetX, offsetY, offsetZ) {
   return group;
 }
 
-
-
-
-const gui = new GUI();
-gui.add(cubeProperties, 'opacity', 0, 1).name('Transparency').onChange(updateCubeGeometry);
-gui.add(dimensions, 'width').name('Width (m)').listen();
-gui.add(dimensions, 'height').name('Height (m)').listen();
-gui.add(dimensions, 'depth').name('Depth (m)').listen();
-gui.add(cubeProperties, 'thickness', 0.01, 0.04).name('Thickness (m)').onChange(updateCubeGeometry);
-
-gui.add(cubeProperties, 'frontPanelVisible').name('Front On/Off').onChange(updateCubeGeometry);
-gui.add(cubeProperties, 'backPanelVisible').name('Back On/Off').onChange(updateCubeGeometry);
-gui.add(cubeProperties, 'topPanelVisible').name('Top On/Off').onChange(updateCubeGeometry);
-gui.add(cubeProperties, 'bottomPanelVisible').name('Bottom On/Off').onChange(updateCubeGeometry);
-gui.add(cubeProperties, 'leftPanelVisible').name('Left On/Off').onChange(updateCubeGeometry);
-gui.add(cubeProperties, 'rightPanelVisible').name('Right On/Off').onChange(updateCubeGeometry);
-gui.add(cubeProperties, 'showHorizontalPanels').name('Shelves On/Off').onChange(updateCubeGeometry);
-
-
-gui.add(cubeProperties, 'cubeWidth', 0.01, 2.4, 0.01).name('Cube Width (m)').onChange(updateCubeGeometry);
-gui.add(cubeProperties, 'cubeHeight', 0.01, 2.4, 0.01).name('Cube Height (m)').onChange(updateCubeGeometry);
-gui.add(cubeProperties, 'cubeDepth', 0.01, 2.4, 0.01).name('Cube Depth (m)').onChange(updateCubeGeometry);
-gui.add(spacing, 'cubeSpacing', 0, 0.1, 0.001).name('Cube Spacing (m)').onChange(updateCubeGeometry);
-gui.add(spacing, 'frontPanelGap', 0, 0.05, 0.001).name('Front Panel Gap (m)').onChange(updateCubeGeometry);
-
-gui.add(numCubes, 'numCubesX', 1, 10, 1).name('Number of Cubes X').onChange(updateCubeGeometry);
-gui.add(numCubes, 'numCubesY', 1, 10, 1).name('Number of Cubes Y').onChange(updateCubeGeometry);
-gui.add(numCubes, 'numCubesZ', 1, 2, 1).name('Number of Cubes Z').onChange(updateCubeGeometry);
-
-gui.add(cubeProperties, 'selectedTexture', ['White Lamination', 'Yellow Lamination', 'Grey Lamination', 'Natural Finish', 'Red Lamination', 'Blue Lamination'])
-  .name('Lamination Texture')
-  .onChange(updateLaminatedMaterial);
-
-gui.add(panelProperties, 'showLargePanel').name('Large Panel On/Off').onChange(updateCubeGeometry);
-gui.add(panelProperties, 'showFloorPanel').name('Floor Panel On/Off').onChange(updateCubeGeometry);
-
-// Camera toggle between perspective and orthogonal
-let viewProperties = {
-  perspectiveView: true
-};
-
-gui.add(viewProperties, 'perspectiveView').name('Perspective View').onChange(updateCameraView);
-
-function updateCameraView() {
-  if (viewProperties.perspectiveView) {
-    currentCamera = perspectiveCamera;
-  } else {
-    // Update orthographic camera parameters
-    const frustumSize = 1;
-    orthographicCamera.left = -frustumSize * aspect;
-    orthographicCamera.right = frustumSize * aspect;
-    orthographicCamera.top = frustumSize;
-    orthographicCamera.bottom = -frustumSize;
-    orthographicCamera.updateProjectionMatrix();
-
-    currentCamera = orthographicCamera;
-  }
-
-  // Sync camera position and rotation
-  currentCamera.position.copy(perspectiveCamera.position);
-  currentCamera.rotation.copy(perspectiveCamera.rotation);
-  controls.object = currentCamera;
-  controls.update();
-}
+// Orbit Controls and Animation Loop
 const controls = new OrbitControls(currentCamera, renderer.domElement);
-// Check if controls are properly initialized
-if (controls) {
-    controls.enableDamping = true; // enable damping (inertia) for smoother controls
-    controls.dampingFactor = 0.25; // set damping factor (adjust this value to your preference)
-    controls.screenSpacePanning = false; // if false, pan orthogonal to world-space direction camera.up
-    controls.minDistance = 1; // minimum zoom distance
-    controls.maxDistance = 500; // maximum zoom distance
+controls.maxPolarAngle = Math.PI / 2; // No downward rotation beyond horizontal view
+controls.minDistance = 1; // Minimum zoom distance
+controls.maxDistance = 6; // Maximum zoom distance
 
-    console.log("Controls initialized: ", controls);
-} else {
-    console.error("Controls failed to initialize.");
-}
-
-// Animation loop
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
@@ -552,3 +558,93 @@ function animate() {
 
 animate();
 updateCubeGeometry();
+
+
+const gui = new dat.GUI();
+
+const cameraFolder = gui.addFolder('Camera');
+cameraFolder.add({
+  resetCamera: () => resetCamera()
+}, 'resetCamera').name('Reset Camera');
+cameraFolder.add(viewProperties, 'perspectiveView').name('Perspective View').onChange(updateCameraView);
+cameraFolder.open(); // Automatically open the folder
+
+const overallFolder = gui.addFolder('Overall Size');
+overallFolder.add(dimensions, 'width').name('Width (m)').listen();
+overallFolder.add(dimensions, 'height').name('Height (m)').listen();
+overallFolder.add(dimensions, 'depth').name('Depth (m)').listen();
+overallFolder.open(); // Automatically open the folder
+
+const cubeFolder = gui.addFolder('Cube Properties');
+cubeFolder.add(cubeProperties, 'cubeWidth', 0.01, 2.4).name('Cube Width (m)').onChange(updateCubeGeometry);
+cubeFolder.add(cubeProperties, 'cubeHeight', 0.01, 2.4).name('Cube Height (m)').onChange(updateCubeGeometry);
+cubeFolder.add(cubeProperties, 'cubeDepth', 0.01, 2.4).name('Cube Depth (m)').onChange(updateCubeGeometry);
+cubeFolder.add(cubeProperties, 'thickness', 0.012, 0.03) // Slider between 12mm (0.012m) and 30mm (0.03m)
+  .step(0.001) // Small step size to allow smooth sliding
+  .name('Thickness (m)')
+  .onChange((value) => {
+    cubeProperties.thickness = closestAllowedThickness(value); // Snap to closest allowed thickness
+    updateCubeGeometry();
+  });
+cubeFolder.add(spacing, 'cubeSpacing', 0, 0.1, 0.001).name('Cube Spacing (m)').onChange(updateCubeGeometry);
+cubeFolder.add(spacing, 'frontPanelGap', 0, 0.05, 0.001).name('Front Panel Gap (m)').onChange(updateCubeGeometry);
+cubeFolder.open(); // Automatically open the folder
+
+const visibilityFolder = gui.addFolder('Visibility');
+visibilityFolder.add(cubeProperties, 'opacity', 0, 1).name('Transparency').onChange(updateCubeGeometry);
+visibilityFolder.add(cubeProperties, 'frontPanelVisible').name('Front On/Off').onChange(updateCubeGeometry);
+visibilityFolder.add(cubeProperties, 'backPanelVisible').name('Back On/Off').onChange(updateCubeGeometry);
+visibilityFolder.add(cubeProperties, 'topPanelVisible').name('Top On/Off').onChange(updateCubeGeometry);
+visibilityFolder.add(cubeProperties, 'bottomPanelVisible').name('Bottom On/Off').onChange(updateCubeGeometry);
+visibilityFolder.add(cubeProperties, 'leftPanelVisible').name('Left On/Off').onChange(updateCubeGeometry);
+visibilityFolder.add(cubeProperties, 'rightPanelVisible').name('Right On/Off').onChange(updateCubeGeometry);
+visibilityFolder.add(cubeProperties, 'showHorizontalPanels').name('Shelves On/Off').onChange(updateCubeGeometry);
+visibilityFolder.add(panelProperties, 'showLargePanel').name('Wall On/Off').onChange(updateCubeGeometry);
+visibilityFolder.add(panelProperties, 'showFloorPanel').name('Floor On/Off').onChange(updateCubeGeometry);
+visibilityFolder.open(); // Automatically open the folder
+
+const repetitionFolder = gui.addFolder('Repetition');
+repetitionFolder.add(numCubes, 'numCubesX', 1, 10, 1).name('Number of Cubes X').onChange(updateCubeGeometry);
+repetitionFolder.add(numCubes, 'numCubesY', 1, 10, 1).name('Number of Cubes Y').onChange(updateCubeGeometry);
+repetitionFolder.add(numCubes, 'numCubesZ', 1, 2, 1).name('Number of Cubes Z').onChange(updateCubeGeometry);
+repetitionFolder.close(); // Automatically open the folder
+
+const textureFolder = gui.addFolder('Texture Selection');
+
+// Create a container for the lamination checkboxes
+const laminationContainer = document.createElement('div');
+laminationContainer.classList.add('cr'); // Class to match the visibility section
+
+// Add a label to the left side
+const laminationLabel = document.createElement('span');
+laminationLabel.textContent = 'Lamination';
+laminationLabel.classList.add('lamination-label'); // Apply label styling
+laminationContainer.appendChild(laminationLabel);
+
+// Colors for each checkbox option
+const laminationOptions = ['Grey', 'White', 'Yellow', 'Natural', 'Red', 'Blue'];
+const colors = ['#888888', '#ffffff', '#ffd700', '#8B4513', '#ff0000', '#0000ff'];
+
+laminationOptions.forEach((option, index) => {
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.classList.add('lamination-checkbox');
+  checkbox.style.backgroundColor = colors[index]; // Set the checkbox color
+
+  checkbox.addEventListener('change', function() {
+    // Only one checkbox should be selected at a time
+    document.querySelectorAll('.lamination-checkbox').forEach(cb => cb.checked = false);
+    checkbox.checked = true;
+
+    // Update the selected texture in the cube properties
+    cubeProperties.selectedTexture = option === 'Natural' ? 'Natural Finish' : `${option} Lamination`;
+
+    updateLaminatedMaterial();
+  });
+
+  laminationContainer.appendChild(checkbox);
+});
+
+
+// Add the container to the texture folder
+textureFolder.__ul.appendChild(laminationContainer);
